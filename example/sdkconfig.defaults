@@ -1,0 +1,37 @@
+#
+# Espressif IoT Development Framework Configuration
+#
+
+#
+# Serial flasher config
+#
+CONFIG_ESPTOOLPY_BAUD_2MB=y
+CONFIG_FLASHMODE_QIO=y
+CONFIG_ESPTOOLPY_FLASHFREQ_80M=y
+CONFIG_ESPTOOLPY_FLASHSIZE_4MB=y
+
+#
+# Compiler options
+#
+CONFIG_CXX_EXCEPTIONS=y
+
+#
+# Component config
+#
+
+#
+# ESP32-specific
+#
+CONFIG_ESP32_DEFAULT_CPU_FREQ_240=y
+CONFIG_CONSOLE_UART_BAUDRATE=115200
+
+#
+# FAT Filesystem support
+#
+CONFIG_FATFS_LFN_HEAP=y
+
+#
+# FreeRTOS
+#
+CONFIG_FREERTOS_HZ=1000
+CONFIG_FREERTOS_ASSERT_FAIL_PRINT_CONTINUE=y
