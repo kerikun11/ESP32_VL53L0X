@@ -54,13 +54,20 @@ public:
       ESP_ERROR_CHECK(gpio_intr_enable(gpio_gpio1));
     }
     /* device init */
-    reset();
-    VL53L0X_SetGpioConfig(&vl53l0x_dev, 0, VL53L0X_DEVICEMODE_SINGLE_RANGING,
-                          VL53L0X_GPIOFUNCTIONALITY_NEW_MEASURE_READY,
-                          VL53L0X_INTERRUPTPOLARITY_LOW);
     vl53l0x_dev.i2c_port_num = i2c_port;
     vl53l0x_dev.i2c_address = VL53L0X_I2C_ADDRESS_DEFAULT;
-    return init_vl53l0x(&vl53l0x_dev) == VL53L0X_ERROR_NONE;
+    reset();
+    if (init_vl53l0x(&vl53l0x_dev) != VL53L0X_ERROR_NONE)
+      return false;
+    if (VL53L0X_ERROR_NONE !=
+        VL53L0X_SetGpioConfig(&vl53l0x_dev, 0,
+                              VL53L0X_DEVICEMODE_SINGLE_RANGING,
+                              VL53L0X_GPIOFUNCTIONALITY_NEW_MEASURE_READY,
+                              VL53L0X_INTERRUPTPOLARITY_LOW))
+      return false;
+    if (!setTimingBudget(33000))
+      return false;
+    return true;
   }
   bool reset() {
     if (!softwareReset())
@@ -71,9 +78,9 @@ public:
     if (gpio_xshut == GPIO_NUM_MAX)
       return false;
     gpio_set_level(gpio_xshut, 0);
-    vTaskDelay(1 / portTICK_PERIOD_MS);
+    vTaskDelay(10 / portTICK_PERIOD_MS);
     gpio_set_level(gpio_xshut, 1);
-    vTaskDelay(1 / portTICK_PERIOD_MS);
+    vTaskDelay(10 / portTICK_PERIOD_MS);
     return true;
   }
   bool softwareReset() {
@@ -85,7 +92,8 @@ public:
     return true;
   }
   bool read(uint16_t *pRangeMilliMeter) {
-    // return readSingleWithInterrupt(pRangeMilliMeter);
+    if (gpio_gpio1 != GPIO_NUM_MAX)
+      return readSingleWithInterrupt(pRangeMilliMeter);
     return readSingleWithPolling(pRangeMilliMeter);
   }
   bool readSingleWithPolling(uint16_t *pRangeMilliMeter) {
@@ -98,6 +106,41 @@ public:
     }
     *pRangeMilliMeter = MeasurementData.RangeMilliMeter;
     if (MeasurementData.RangeStatus != 0)
+      return false;
+    return true;
+  }
+  bool readSingleWithDelay(uint16_t *pRangeMilliMeter) {
+    TickType_t xTicksToWait =
+        TimingBudgetMicroSeconds / 1000 / portTICK_PERIOD_MS;
+    VL53L0X_Error status;
+    // set mode
+    status =
+        VL53L0X_SetDeviceMode(&vl53l0x_dev, VL53L0X_DEVICEMODE_SINGLE_RANGING);
+    if (status != VL53L0X_ERROR_NONE) {
+      print_pal_error(status, "VL53L0X_SetDeviceMode");
+      return false;
+    }
+    // start measurement
+    status = VL53L0X_StartMeasurement(&vl53l0x_dev);
+    if (status != VL53L0X_ERROR_NONE) {
+      print_pal_error(status, "VL53L0X_StartMeasurement");
+      return false;
+    }
+    // wait
+    vTaskDelay(xTicksToWait);
+    // get data
+    VL53L0X_RangingMeasurementData_t MeasurementData;
+    status = VL53L0X_GetRangingMeasurementData(&vl53l0x_dev, &MeasurementData);
+    if (status != VL53L0X_ERROR_NONE) {
+      print_pal_error(status, "VL53L0X_GetRangingMeasurementData");
+      return false;
+    }
+    *pRangeMilliMeter = MeasurementData.RangeMilliMeter;
+    if (MeasurementData.RangeStatus != 0)
+      return false;
+    // clear interrupt
+    VL53L0X_ClearInterruptMask(&vl53l0x_dev, 0);
+    if (status != VL53L0X_ERROR_NONE)
       return false;
     return true;
   }
@@ -159,6 +202,7 @@ public:
       print_pal_error(status, "VL53L0X_SetMeasurementTimingBudgetMicroSeconds");
       return false;
     }
+    this->TimingBudgetMicroSeconds = TimingBudgetMicroSeconds;
     return true;
   }
 
@@ -168,6 +212,7 @@ protected:
   gpio_num_t gpio_gpio1;
   VL53L0X_Dev_t vl53l0x_dev;
   volatile SemaphoreHandle_t xSemaphore = NULL;
+  int32_t TimingBudgetMicroSeconds;
 
   static void IRAM_ATTR gpio1_isr(void *arg) {
     VL53L0X *obj = static_cast<VL53L0X *>(arg);
