@@ -22,9 +22,38 @@
 #include "vl53l0x_platform.h"
 
 #include "esp_log.h"
+
+#pragma push_macro("I2C_PORT")
+#pragma push_macro("SDA_GPIO")
+#pragma push_macro("SCL_GPIO")
+#pragma push_macro("XSHUT_GPIO")
+#pragma push_macro("INT_GPIO")
+#pragma push_macro("TAG")
+
 #define TAG "VL53L0X"
 
-static constexpr uint8_t VL53L0X_I2C_ADDRESS_DEFAULT = 0x29;
+#ifdef CONFIG_I2C_PORT_NUM1
+#  define I2C_PORT I2C_NUM_1
+#else
+#  define I2C_PORT I2C_NUM_0
+#endif
+
+#define SDA_GPIO ((gpio_num_t) CONFIG_I2C_SDA_GPIO)
+#define SCL_GPIO ((gpio_num_t) CONFIG_I2C_SCL_GPIO)
+
+#ifdef CONFIG_XSHUT_ENABLE
+#  define XSHUT_GPIO ((gpio_num_t) CONFIG_XSHUT_GPIO)
+#else
+#  define XSHUT_GPIO GPIO_NUM_MAX
+#endif
+
+#ifdef CONFIG_INT_ENABLE
+#  define INT_GPIO ((gpio_num_t) CONFIG_INT_GPIO)
+#else
+#  define INT_GPIO GPIO_NUM_MAX
+#endif
+
+static constexpr uint8_t VL53L0X_I2C_ADDRESS_DEFAULT = CONFIG_I2C_ADDRESS;
 
 /**
  * @brief VL53L0X class
@@ -32,8 +61,8 @@ static constexpr uint8_t VL53L0X_I2C_ADDRESS_DEFAULT = 0x29;
  */
 class VL53L0X {
 public:
-  VL53L0X(i2c_port_t i2c_port = I2C_NUM_0, gpio_num_t gpio_xshut = GPIO_NUM_MAX,
-          gpio_num_t gpio_gpio1 = GPIO_NUM_MAX)
+  VL53L0X(i2c_port_t i2c_port = I2C_PORT, gpio_num_t gpio_xshut = XSHUT_GPIO,
+          gpio_num_t gpio_gpio1 = INT_GPIO)
       : i2c_port(i2c_port), gpio_xshut(gpio_xshut), gpio_gpio1(gpio_gpio1) {
     vSemaphoreCreateBinary(xSemaphore);
   }
@@ -182,8 +211,8 @@ public:
     return true;
   }
 
-  void i2cMasterInit(gpio_num_t pin_sda = GPIO_NUM_21,
-                     gpio_num_t pin_scl = GPIO_NUM_22, uint32_t freq = 400000) {
+  void i2cMasterInit(gpio_num_t pin_sda = SDA_GPIO,
+                     gpio_num_t pin_scl = SCL_GPIO, uint32_t freq = 400000) {
     i2c_config_t conf;
     conf.mode = I2C_MODE_MASTER;
     conf.sda_io_num = pin_sda;
@@ -259,3 +288,10 @@ protected:
 };
 
 #undef TAG
+#pragma pop_macro("I2C_PORT")
+#pragma pop_macro("SDA_GPIO")
+#pragma pop_macro("SCL_GPIO")
+#pragma pop_macro("XSHUT_GPIO")
+#pragma pop_macro("INT_GPIO")
+#pragma pop_macro("TAG")
+

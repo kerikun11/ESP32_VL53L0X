@@ -1,0 +1,46 @@
+menu "vl53l0x specific"
+  config I2C_ADDRESS
+      hex "I2C address of the VL53L0X"
+      default 0x29
+
+
+  choice I2C_PORT
+      prompt "I2C port"
+      default I2C_PORT_NUM0
+      config I2C_PORT_NUM0
+          bool "I2C_NUM0"
+      config I2C_PORT_NUM1
+          bool "I2C_NUM1"
+  endchoice
+
+  config I2C_SDA_GPIO
+      int "SDA on GPIO#"
+      range 0 33
+      default 21
+
+  config I2C_SCL_GPIO
+      int "SCL on GPIO#"
+      range 0 33
+      default 22
+
+  config XSHUT_ENABLE
+      bool "Enable XSHUT"
+      default false
+
+  config XSHUT_GPIO
+      int "XSHUT on GPIO#"
+      depends on XSHUT_ENABLE
+      range 0 33
+      default 23
+
+  config INT_ENABLE
+      bool "Enable INT"
+      default false
+
+  config INT_GPIO
+      int "INT on GPIO#"
+      depends on INT_ENABLE
+      range 0 33
+      default 24
+
+endmenu
