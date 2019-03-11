@@ -9,14 +9,13 @@
  *
  */
 #pragma once
-
-#define TAG "VL53L0X"
+#include "driver/i2c.h"
 
 namespace VL53L0X_config {
 # ifdef CONFIG_I2C_PORT_NUM1
-    static auto i2c_port = I2C_NUM1;
+    static auto i2c_port = I2C_NUM_1;
 # else
-    static auto i2c_port = I2C_NUM0;
+    static auto i2c_port = I2C_NUM_0;
 # endif
 
   static auto sda_gpio = (gpio_num_t) CONFIG_I2C_SDA_GPIO;

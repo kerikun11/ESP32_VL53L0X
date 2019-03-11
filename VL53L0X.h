@@ -265,10 +265,5 @@ protected:
 };
 
 #undef TAG
-#pragma pop_macro("I2C_PORT")
-#pragma pop_macro("SDA_GPIO")
-#pragma pop_macro("SCL_GPIO")
-#pragma pop_macro("XSHUT_GPIO")
-#pragma pop_macro("INT_GPIO")
 #pragma pop_macro("TAG")
 
