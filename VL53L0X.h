@@ -22,6 +22,10 @@
 #include "vl53l0x_platform.h"
 
 #include "esp_log.h"
+
+#include "VL53L0X_config.h"
+
+#pragma push_macro("TAG")
 #define TAG "VL53L0X"
 
 static constexpr uint8_t VL53L0X_I2C_ADDRESS_DEFAULT = 0x29;
@@ -32,8 +36,9 @@ static constexpr uint8_t VL53L0X_I2C_ADDRESS_DEFAULT = 0x29;
  */
 class VL53L0X {
 public:
-  VL53L0X(i2c_port_t i2c_port = I2C_NUM_0, gpio_num_t gpio_xshut = GPIO_NUM_MAX,
-          gpio_num_t gpio_gpio1 = GPIO_NUM_MAX)
+  VL53L0X(i2c_port_t i2c_port = VL53L0X_config::i2c_port,
+          gpio_num_t gpio_xshut = VL53L0X_config::xshut_gpio,
+          gpio_num_t gpio_gpio1 = VL53L0X_config::gpio1_gpio)
       : i2c_port(i2c_port), gpio_xshut(gpio_xshut), gpio_gpio1(gpio_gpio1) {
     vSemaphoreCreateBinary(xSemaphore);
   }
@@ -182,8 +187,9 @@ public:
     return true;
   }
 
-  void i2cMasterInit(gpio_num_t pin_sda = GPIO_NUM_21,
-                     gpio_num_t pin_scl = GPIO_NUM_22, uint32_t freq = 400000) {
+  void i2cMasterInit(gpio_num_t pin_sda = VL53L0X_config::sda_gpio,
+                     gpio_num_t pin_scl = VL53L0X_config::scl_gpio,
+                     uint32_t freq = 400000) {
     i2c_config_t conf;
     conf.mode = I2C_MODE_MASTER;
     conf.sda_io_num = pin_sda;
@@ -259,3 +265,10 @@ protected:
 };
 
 #undef TAG
+#pragma pop_macro("I2C_PORT")
+#pragma pop_macro("SDA_GPIO")
+#pragma pop_macro("SCL_GPIO")
+#pragma pop_macro("XSHUT_GPIO")
+#pragma pop_macro("INT_GPIO")
+#pragma pop_macro("TAG")
+

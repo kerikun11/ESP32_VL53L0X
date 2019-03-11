@@ -8,15 +8,10 @@
 #include "esp_log.h"
 #define TAG "app_main"
 
-/* config */
-#define I2C_PORT I2C_NUM_0
-#define PIN_SDA GPIO_NUM_21
-#define PIN_SCL GPIO_NUM_22
-
 extern "C" void app_main() {
   /* initialization */
-  VL53L0X vl(I2C_PORT);
-  vl.i2cMasterInit(PIN_SDA, PIN_SCL);
+  VL53L0X vl;
+  vl.i2cMasterInit();
   if (!vl.init()) {
     ESP_LOGE(TAG, "Failed to initialize VL53L0X :(");
     vTaskDelay(portMAX_DELAY);
