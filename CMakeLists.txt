@@ -1,15 +1,7 @@
-set(COMPONENT_PRIV_REQUIRES log)
+# The following lines of boilerplate have to be in your project's CMakeLists
+# in this exact order for cmake to work correctly
+cmake_minimum_required(VERSION 3.5)
 
-set(COMPONENT_SRCS 
-  "core/src/vl53l0x_api.c"
-  "core/src/vl53l0x_api_calibration.c"
-  "core/src/vl53l0x_api_core.c"
-  "core/src/vl53l0x_api_ranging.c"
-  "core/src/vl53l0x_api_strings.c"
-  "platform/src/vl53l0x_platform.c"
-  "platform/src/vl53l0x_platform_log.c"
-)
+include($ENV{IDF_PATH}/tools/cmake/project.cmake)
 
-set(COMPONENT_ADD_INCLUDEDIRS "." "core/inc" "platform/inc")
-
-register_component()
+project(ESP32_VL53L0X)

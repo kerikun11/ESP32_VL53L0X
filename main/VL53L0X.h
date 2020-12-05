@@ -69,11 +69,13 @@ public:
       return false;
     return true;
   }
+
   bool reset() {
     if (!softwareReset())
       return hardwareReset();
     return true;
   }
+
   bool hardwareReset() {
     if (gpio_xshut == GPIO_NUM_MAX)
       return false;
@@ -83,6 +85,7 @@ public:
     vTaskDelay(10 / portTICK_PERIOD_MS);
     return true;
   }
+
   bool softwareReset() {
     VL53L0X_Error status = VL53L0X_ResetDevice(&vl53l0x_dev);
     if (status != VL53L0X_ERROR_NONE) {
@@ -91,11 +94,13 @@ public:
     }
     return true;
   }
+
   bool read(uint16_t *pRangeMilliMeter) {
     if (gpio_gpio1 != GPIO_NUM_MAX)
       return readSingleWithInterrupt(pRangeMilliMeter);
     return readSingleWithPolling(pRangeMilliMeter);
   }
+
   bool readSingleWithPolling(uint16_t *pRangeMilliMeter) {
     VL53L0X_RangingMeasurementData_t MeasurementData;
     VL53L0X_Error status =
@@ -109,9 +114,10 @@ public:
       return false;
     return true;
   }
-  bool readSingleWithDelay(uint16_t *pRangeMilliMeter) {
-    TickType_t xTicksToWait =
-        TimingBudgetMicroSeconds / 1000 / portTICK_PERIOD_MS;
+
+  bool readSingleWithDelay(uint16_t *pRangeMilliMeter, int delayMS) {
+    //TickType_t xTicksToWait =
+    //    TimingBudgetMicroSeconds / 1000 / portTICK_PERIOD_MS;
     VL53L0X_Error status;
     // set mode
     status =
@@ -127,7 +133,7 @@ public:
       return false;
     }
     // wait
-    vTaskDelay(xTicksToWait);
+    vTaskDelay(delayMS/ portTICK_PERIOD_MS);
     // get data
     VL53L0X_RangingMeasurementData_t MeasurementData;
     status = VL53L0X_GetRangingMeasurementData(&vl53l0x_dev, &MeasurementData);
@@ -144,6 +150,7 @@ public:
       return false;
     return true;
   }
+  
   bool readSingleWithInterrupt(uint16_t *pRangeMilliMeter) {
     if (gpio_gpio1 == GPIO_NUM_MAX)
       return false;
