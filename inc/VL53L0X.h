@@ -2,11 +2,8 @@
  * @file VL53L0X.h
  * @author Ryotaro Onuki (kerikun11+github@gmail.com)
  * @brief C++ Library for VL53L0X as an ESP-IDF component
- * @version 0.1
  * @date 2018-11-07
- *
  * @copyright Copyright (c) 2018
- *
  */
 #pragma once
 
@@ -22,7 +19,6 @@
 #include "vl53l0x_platform.h"
 
 #include "esp_log.h"
-#define TAG "VL53L0X"
 
 static constexpr uint8_t VL53L0X_I2C_ADDRESS_DEFAULT = 0x29;
 
@@ -207,6 +203,7 @@ public:
   }
 
 protected:
+  static constexpr const char *TAG = "VL53L0X";
   i2c_port_t i2c_port;
   gpio_num_t gpio_xshut;
   gpio_num_t gpio_gpio1;
@@ -257,5 +254,3 @@ protected:
     return status;
   }
 };
-
-#undef TAG

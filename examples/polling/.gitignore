@@ -1,0 +1,12 @@
+# ESP-IDF
+sdkconfig
+sdkconfig.old
+build
+
+# PlatformIO
+.pio
+.pioenvs
+.piolibdeps
+
+# VSCode
+.vscode

@@ -3,7 +3,8 @@
 # project subdirectory.
 #
 
-PROJECT_NAME := vl53l0x
-CFLAGS:=-DUSE_I2C_2V8=1
+PROJECT_NAME := vl53l0x_example
+
+EXTRA_COMPONENT_DIRS += ../..
 
 include $(IDF_PATH)/make/project.mk

@@ -1,8 +1,10 @@
-#include "freertos/FreeRTOS.h"
-
-#include "driver/gpio.h"
-#include "driver/i2c.h"
-
+/**
+ * @file main.cpp
+ * @author Ryotaro Onuki (kerikun11+github@gmail.com)
+ * @brief VL53L0X driver example
+ * @date 2020-12-07
+ * @copyright Copyright (c) 2020 Ryotaro Onuki
+ */
 #include "VL53L0X.h"
 
 #include "esp_log.h"
