@@ -1,5 +1,5 @@
 set(COMPONENT_SRCS
-    "main.cpp"
+    "app_main.cpp"
 )
 
 register_component()

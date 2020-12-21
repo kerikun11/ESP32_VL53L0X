@@ -1,5 +1,5 @@
 /**
- * @file main.cpp
+ * @file app_main.cpp
  * @author Ryotaro Onuki (kerikun11+github@gmail.com)
  * @brief VL53L0X driver example
  * @date 2020-12-07
