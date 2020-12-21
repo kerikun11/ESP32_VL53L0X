@@ -1,0 +1,16 @@
+{
+    "name": "VL53L0X",
+    "description": "ToF sensor VL53L0X driver for ESP32",
+    "keywords": "vl53l0x,esp32",
+    "build": {
+        "flags": [
+            "-I inc",
+            "-I api/core/inc",
+            "-I api/platform/inc"
+        ],
+        "src_filter": [
+            "+inc",
+            "+api"
+        ]
+    }
+}
