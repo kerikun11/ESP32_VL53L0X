@@ -87,6 +87,24 @@ public:
     }
     return true;
   }
+  /**
+   * @brief Set the I2C address of the VL53L0X
+   * 
+   * @param new_address right-aligned address
+   */
+  bool setDeviceAddress(uint8_t new_address) {
+    VL53L0X_Error status =
+        // VL53L0X_SetDeviceAddress expects the address to be left-aligned
+        VL53L0X_SetDeviceAddress(&vl53l0x_dev, new_address << 1);
+    if (status != VL53L0X_ERROR_NONE) {
+      print_pal_error(status, "VL53L0X_PerformSingleRangingMeasurement");
+      return false;
+    }
+
+    vl53l0x_dev.i2c_address = new_address;
+
+    return true;
+  }
   bool read(uint16_t *pRangeMilliMeter) {
     if (gpio_gpio1 != GPIO_NUM_MAX)
       return readSingleWithInterrupt(pRangeMilliMeter);
