@@ -199,6 +199,7 @@ public:
   void i2cMasterInit(gpio_num_t pin_sda = GPIO_NUM_21,
                      gpio_num_t pin_scl = GPIO_NUM_22, uint32_t freq = 400000) {
     i2c_config_t conf;
+    memset(&conf, 0, sizeof(i2c_config_t));
     conf.mode = I2C_MODE_MASTER;
     conf.sda_io_num = pin_sda;
     conf.sda_pullup_en = GPIO_PULLUP_ENABLE;
