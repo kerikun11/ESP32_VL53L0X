@@ -14,6 +14,8 @@ set(COMPONENT_ADD_INCLUDEDIRS
     api/platform/inc
 )
 
+set(COMPONENT_REQUIRES driver)
+
 register_component()
 
 target_compile_definitions(${COMPONENT_TARGET}
