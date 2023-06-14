@@ -89,13 +89,13 @@ int32_t VL53L0X_trace_config(char *filename, uint32_t modules, uint32_t level, u
 #define LOG_GET_TIME() esp_log_timestamp()
 
 #define _LOG_FUNCTION_START(module, fmt, ... ) \
-        trace_print_module_function(module, _trace_level, TRACE_FUNCTION_ALL, "%"PRIu32" <START> %s "fmt"\n", LOG_GET_TIME(), __FUNCTION__, ##__VA_ARGS__);
+        trace_print_module_function(module, _trace_level, TRACE_FUNCTION_ALL, "%" PRIu32 " <START> %s "fmt"\n", LOG_GET_TIME(), __FUNCTION__, ##__VA_ARGS__);
 
 #define _LOG_FUNCTION_END(module, status, ... )\
-        trace_print_module_function(module, _trace_level, TRACE_FUNCTION_ALL, "%"PRIu32" <END> %s %d\n", LOG_GET_TIME(), __FUNCTION__, (int)status, ##__VA_ARGS__)
+        trace_print_module_function(module, _trace_level, TRACE_FUNCTION_ALL, "%" PRIu32 " <END> %s %d\n", LOG_GET_TIME(), __FUNCTION__, (int)status, ##__VA_ARGS__)
 
 #define _LOG_FUNCTION_END_FMT(module, status, fmt, ... )\
-        trace_print_module_function(module, _trace_level, TRACE_FUNCTION_ALL, "%"PRIu32" <END> %s %d "fmt"\n", LOG_GET_TIME(),  __FUNCTION__, (int)status,##__VA_ARGS__)
+        trace_print_module_function(module, _trace_level, TRACE_FUNCTION_ALL, "%" PRIu32 " <END> %s %d "fmt"\n", LOG_GET_TIME(),  __FUNCTION__, (int)status,##__VA_ARGS__)
 
 #else /* VL53L0X_LOG_ENABLE no logging */
     #define VL53L0X_ErrLog(...) (void)0

@@ -257,7 +257,7 @@ protected:
     // SPADs calibration (~10ms)
     status = VL53L0X_PerformRefSpadManagement(pDevice, &refSpadCount,
                                               &isApertureSpads);
-    ESP_LOGI(TAG, "refSpadCount = %d, isApertureSpads = %d\n", refSpadCount,
+    ESP_LOGI(TAG, "refSpadCount = %" PRIu32 ", isApertureSpads = %" PRIu8 "\n", refSpadCount,
              isApertureSpads);
     if (status != VL53L0X_ERROR_NONE)
       return print_pal_error(status, "VL53L0X_PerformRefSpadManagement");
