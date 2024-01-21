@@ -2,8 +2,7 @@
  * @file VL53L0X.h
  * @author Ryotaro Onuki (kerikun11+github@gmail.com)
  * @brief C++ Library for VL53L0X as an ESP-IDF component
- * @date 2018-11-07
- * @copyright Copyright (c) 2018
+ * @copyright Copyright (c) 2018 Ryotaro Onuki
  */
 #pragma once
 
@@ -89,7 +88,7 @@ public:
   }
   /**
    * @brief Set the I2C address of the VL53L0X
-   * 
+   *
    * @param new_address right-aligned address
    */
   bool setDeviceAddress(uint8_t new_address) {
@@ -257,8 +256,8 @@ protected:
     // SPADs calibration (~10ms)
     status = VL53L0X_PerformRefSpadManagement(pDevice, &refSpadCount,
                                               &isApertureSpads);
-    ESP_LOGI(TAG, "refSpadCount = %" PRIu32 ", isApertureSpads = %" PRIu8 "\n", refSpadCount,
-             isApertureSpads);
+    ESP_LOGI(TAG, "refSpadCount = %" PRIu32 ", isApertureSpads = %" PRIu8 "\n",
+             refSpadCount, isApertureSpads);
     if (status != VL53L0X_ERROR_NONE)
       return print_pal_error(status, "VL53L0X_PerformRefSpadManagement");
     // Temperature calibration (~40ms)
