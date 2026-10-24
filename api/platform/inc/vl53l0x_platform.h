@@ -33,7 +33,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "vl53l0x_def.h"
 #include "vl53l0x_platform_log.h"
 
-#include "driver/i2c.h"   /*!< user specific field */
+#include "driver/i2c_master.h"   /*!< user specific field */
 
 #ifdef __cplusplus
 extern "C" {
@@ -61,7 +61,7 @@ typedef struct {
 
     /*!< user specific field */
     uint8_t     i2c_address;              /*!< i2c device address user specific field */
-    i2c_port_t  i2c_port_num;             /*!< i2c host port user specific field */
+    i2c_master_dev_handle_t i2c_dev;      /*!< i2c master device handle user specific field */
 
 } VL53L0X_Dev_t;
 

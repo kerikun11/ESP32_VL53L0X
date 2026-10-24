@@ -11,7 +11,7 @@
 #include "freertos/task.h"
 
 #include "driver/gpio.h"
-#include "driver/i2c.h"
+#include "driver/i2c_master.h"
 
 #include "vl53l0x_api.h"
 #include "vl53l0x_def.h"
@@ -27,11 +27,25 @@ static constexpr uint8_t VL53L0X_I2C_ADDRESS_DEFAULT = 0x29;
  */
 class VL53L0X {
 public:
-  VL53L0X(i2c_port_t i2c_port = I2C_NUM_0, gpio_num_t gpio_xshut = GPIO_NUM_MAX,
-          gpio_num_t gpio_gpio1 = GPIO_NUM_MAX)
-      : i2c_port(i2c_port), gpio_xshut(gpio_xshut), gpio_gpio1(gpio_gpio1) {
+  /**
+   * @param i2c_bus I2C master bus created with i2c_new_master_bus()
+   * @param gpio_xshut optional XSHUT pin for hardware reset
+   * @param gpio_gpio1 optional GPIO1 pin for measurement-ready interrupt
+   * @param scl_speed_hz I2C clock frequency for this device
+   */
+  VL53L0X(i2c_master_bus_handle_t i2c_bus,
+          gpio_num_t gpio_xshut = GPIO_NUM_MAX,
+          gpio_num_t gpio_gpio1 = GPIO_NUM_MAX, uint32_t scl_speed_hz = 400000)
+      : i2c_bus(i2c_bus), gpio_xshut(gpio_xshut), gpio_gpio1(gpio_gpio1),
+        scl_speed_hz(scl_speed_hz) {
     vSemaphoreCreateBinary(xSemaphore);
   }
+  ~VL53L0X() {
+    if (vl53l0x_dev.i2c_dev != NULL)
+      i2c_master_bus_rm_device(vl53l0x_dev.i2c_dev);
+  }
+  VL53L0X(const VL53L0X &) = delete;
+  VL53L0X &operator=(const VL53L0X &) = delete;
 
   bool init() {
     /* gpio init */
@@ -49,8 +63,19 @@ public:
       ESP_ERROR_CHECK(gpio_intr_enable(gpio_gpio1));
     }
     /* device init */
-    vl53l0x_dev.i2c_port_num = i2c_port;
-    vl53l0x_dev.i2c_address = VL53L0X_I2C_ADDRESS_DEFAULT;
+    if (vl53l0x_dev.i2c_dev == NULL) {
+      i2c_device_config_t dev_cfg = {};
+      dev_cfg.dev_addr_length = I2C_ADDR_BIT_LEN_7;
+      dev_cfg.device_address = VL53L0X_I2C_ADDRESS_DEFAULT;
+      dev_cfg.scl_speed_hz = scl_speed_hz;
+      esp_err_t err =
+          i2c_master_bus_add_device(i2c_bus, &dev_cfg, &vl53l0x_dev.i2c_dev);
+      if (err != ESP_OK) {
+        ESP_LOGE(TAG, "i2c_master_bus_add_device: %s", esp_err_to_name(err));
+        return false;
+      }
+      vl53l0x_dev.i2c_address = VL53L0X_I2C_ADDRESS_DEFAULT;
+    }
     reset();
     if (init_vl53l0x(&vl53l0x_dev) != VL53L0X_ERROR_NONE)
       return false;
@@ -96,10 +121,17 @@ public:
         // VL53L0X_SetDeviceAddress expects the address to be left-aligned
         VL53L0X_SetDeviceAddress(&vl53l0x_dev, new_address << 1);
     if (status != VL53L0X_ERROR_NONE) {
-      print_pal_error(status, "VL53L0X_PerformSingleRangingMeasurement");
+      print_pal_error(status, "VL53L0X_SetDeviceAddress");
       return false;
     }
 
+    esp_err_t err = i2c_master_device_change_address(vl53l0x_dev.i2c_dev,
+                                                     new_address, 1000);
+    if (err != ESP_OK) {
+      ESP_LOGE(TAG, "i2c_master_device_change_address: %s",
+               esp_err_to_name(err));
+      return false;
+    }
     vl53l0x_dev.i2c_address = new_address;
 
     return true;
@@ -177,7 +209,7 @@ public:
       return false;
     }
     // wait for interrupt
-    xSemaphoreTake(xSemaphore, 1000 / portMAX_DELAY);
+    xSemaphoreTake(xSemaphore, pdMS_TO_TICKS(1000));
     // get data
     VL53L0X_RangingMeasurementData_t MeasurementData;
     status = VL53L0X_GetRangingMeasurementData(&vl53l0x_dev, &MeasurementData);
@@ -195,20 +227,6 @@ public:
     return true;
   }
 
-  void i2cMasterInit(gpio_num_t pin_sda = GPIO_NUM_21,
-                     gpio_num_t pin_scl = GPIO_NUM_22, uint32_t freq = 400000) {
-    i2c_config_t conf;
-    memset(&conf, 0, sizeof(i2c_config_t));
-    conf.mode = I2C_MODE_MASTER;
-    conf.sda_io_num = pin_sda;
-    conf.sda_pullup_en = GPIO_PULLUP_ENABLE;
-    conf.scl_io_num = pin_scl;
-    conf.scl_pullup_en = GPIO_PULLUP_ENABLE;
-    conf.master.clk_speed = freq;
-    ESP_ERROR_CHECK(i2c_param_config(i2c_port, &conf));
-    ESP_ERROR_CHECK(i2c_driver_install(i2c_port, conf.mode, 0, 0, 0));
-  }
-
   bool setTimingBudget(uint32_t TimingBudgetMicroSeconds) {
     VL53L0X_Error status = VL53L0X_SetMeasurementTimingBudgetMicroSeconds(
         &vl53l0x_dev, TimingBudgetMicroSeconds);
@@ -222,10 +240,11 @@ public:
 
 protected:
   static constexpr const char *TAG = "VL53L0X";
-  i2c_port_t i2c_port;
+  i2c_master_bus_handle_t i2c_bus;
   gpio_num_t gpio_xshut;
   gpio_num_t gpio_gpio1;
-  VL53L0X_Dev_t vl53l0x_dev;
+  uint32_t scl_speed_hz;
+  VL53L0X_Dev_t vl53l0x_dev = {};
   volatile SemaphoreHandle_t xSemaphore = NULL;
   int32_t TimingBudgetMicroSeconds;
 

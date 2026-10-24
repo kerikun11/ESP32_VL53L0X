@@ -17,8 +17,17 @@
 
 extern "C" void app_main() {
   /* initialization */
-  VL53L0X vl(I2C_PORT);
-  vl.i2cMasterInit(PIN_SDA, PIN_SCL);
+  i2c_master_bus_config_t bus_cfg = {};
+  bus_cfg.i2c_port = I2C_PORT;
+  bus_cfg.sda_io_num = PIN_SDA;
+  bus_cfg.scl_io_num = PIN_SCL;
+  bus_cfg.clk_source = I2C_CLK_SRC_DEFAULT;
+  bus_cfg.glitch_ignore_cnt = 7;
+  bus_cfg.flags.enable_internal_pullup = true;
+  i2c_master_bus_handle_t bus = NULL;
+  ESP_ERROR_CHECK(i2c_new_master_bus(&bus_cfg, &bus));
+
+  VL53L0X vl(bus);
   if (!vl.init()) {
     ESP_LOGE(TAG, "Failed to initialize VL53L0X :(");
     vTaskDelay(portMAX_DELAY);
